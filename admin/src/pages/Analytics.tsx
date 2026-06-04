@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { MessageCircle, Globe } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
@@ -7,11 +7,66 @@ import api from '@/lib/api';
 import type { WhatsappLeadRecord } from '@/types';
 import StatCard from '@/components/ui/StatCard';
 
+type Period = 'day' | 'week' | 'month' | 'year';
+
+function aggregateByPeriod(leads: WhatsappLeadRecord[], period: Period): { label: string; count: number }[] {
+  const groups: Record<string, number> = {};
+
+  for (const lead of leads) {
+    const d = new Date(lead.clicked_at);
+    let key: string;
+
+    switch (period) {
+      case 'day': {
+        key = lead.clicked_at.slice(0, 10);
+        break;
+      }
+      case 'week': {
+        const startOfYear = new Date(d.getFullYear(), 0, 1);
+        const weekNum = Math.ceil(((d.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
+        key = `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+        break;
+      }
+      case 'month': {
+        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        break;
+      }
+      case 'year': {
+        key = String(d.getFullYear());
+        break;
+      }
+    }
+
+    groups[key] = (groups[key] ?? 0) + 1;
+  }
+
+  return Object.entries(groups)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([label, count]) => ({ label, count }));
+}
+
+function formatLabel(label: string, period: Period): string {
+  switch (period) {
+    case 'day':
+      return label.slice(5);
+    case 'week':
+      return label;
+    case 'month': {
+      const [y, m] = label.split('-');
+      const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+      return `${months[parseInt(m, 10) - 1]} ${y}`;
+    }
+    case 'year':
+      return label;
+  }
+}
+
 export default function Analytics() {
   const { lang } = useLanguage();
   const [leads, setLeads] = useState<WhatsappLeadRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [period, setPeriod] = useState<Period>('day');
 
   useEffect(() => {
     api.get('/leads/whatsapp')
@@ -24,19 +79,24 @@ export default function Analytics() {
       .finally(() => setLoading(false));
   }, []);
 
-  const byDate: Record<string, number> = {};
   const byLang: Record<string, number> = {};
   leads.forEach((lead) => {
-    const day = lead.clicked_at.slice(0, 10);
-    byDate[day] = (byDate[day] ?? 0) + 1;
     byLang[lead.detected_lang] = (byLang[lead.detected_lang] ?? 0) + 1;
   });
 
-  const chartData = Object.entries(byDate)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, count]) => ({ date: date.slice(5), count }));
+  const chartData = useMemo(
+    () => aggregateByPeriod(leads, period).map((d) => ({ ...d, date: formatLabel(d.label, period) })),
+    [leads, period],
+  );
 
   const langLabels: Record<string, string> = { fr: 'Français', ar: 'Arabe' };
+
+  const periods: { key: Period; labelKey: string }[] = [
+    { key: 'day', labelKey: 'analytics.period.day' },
+    { key: 'week', labelKey: 'analytics.period.week' },
+    { key: 'month', labelKey: 'analytics.period.month' },
+    { key: 'year', labelKey: 'analytics.period.year' },
+  ];
 
   if (error) {
     return (
@@ -99,7 +159,25 @@ export default function Analytics() {
       </div>
 
       <div className="bg-white rounded-xl border border-[#E2E8F0] p-6">
-        <h2 className="text-base font-semibold text-[#0F172A] mb-4">{t('analytics.dailyClicks', lang)}</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-[#0F172A]">{t('analytics.clicksByPeriod', lang)}</h2>
+          <div className="flex gap-1 bg-[#F1F5F9] rounded-lg p-0.5">
+            {periods.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                onClick={() => setPeriod(p.key)}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  period === p.key
+                    ? 'bg-white text-[#0F172A] shadow-sm'
+                    : 'text-[#64748B] hover:text-[#0F172A]'
+                }`}
+              >
+                {t(p.labelKey, lang)}
+              </button>
+            ))}
+          </div>
+        </div>
         {loading ? (
           <p className="text-sm text-[#94A3B8]">{t('datatable.loading', lang)}</p>
         ) : chartData.length === 0 ? (

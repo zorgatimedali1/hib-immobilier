@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, BarChart3, Plus, ArrowUpRight } from 'lucide-react';
+import { Building2, BarChart3, Plus } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { t } from '@/lib/i18n';
 import api from '@/lib/api';
@@ -20,7 +20,6 @@ export default function Dashboard() {
     ]).finally(() => setLoading(false));
   }, []);
 
-  const featuredCount = properties.filter((p) => p.is_featured).length;
   const totalValue = properties.reduce((sum, p) => sum + (p.price ?? 0), 0);
   const avgPrice = properties.length > 0 ? Math.round(totalValue / properties.length) : 0;
   const leadCount = leads.length;
@@ -41,17 +40,12 @@ export default function Dashboard() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           label={t('dashboard.totalProperties', lang)}
           value={properties.length}
           icon={<Building2 size={18} />}
           trend={properties.length > 0 ? { value: `${properties.length} ${t('dashboard.registered', lang)}`, positive: true } : undefined}
-        />
-        <StatCard
-          label={t('dashboard.featured', lang)}
-          value={featuredCount}
-          icon={<ArrowUpRight size={18} />}
         />
         <StatCard
           label={t('dashboard.avgPrice', lang)}

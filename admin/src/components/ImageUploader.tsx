@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Upload, X, Loader2, Save } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ export default function ImageUploader({ propertyId, existingImages, onUploaded }
   const [uploading, setUploading] = useState(false);
   const [compressing, setCompressing] = useState(false);
   const [queue, setQueue] = useState<File[]>([]);
+  const queueRef = useRef<File[]>([]);
 
   const onDrop = useCallback((accepted: File[]) => {
     setQueue((prev) => [...prev, ...accepted].slice(0, 12));
@@ -26,17 +27,15 @@ export default function ImageUploader({ propertyId, existingImages, onUploaded }
     maxFiles: 12,
   });
 
-  const uploadAll = async () => {
-    if (!queue.length) return;
-    if (!propertyId) {
-      toast.error('Enregistrez d\'abord le bien');
-      return;
-    }
-    setCompressing(true);
+  queueRef.current = queue;
 
+  const prevPropertyId = useRef<string | null | undefined>(undefined);
+
+  const uploadFiles = async (files: File[], pid: string) => {
+    setCompressing(true);
     try {
       const compressed = await Promise.all(
-        queue.map(async (file) => {
+        files.map(async (file) => {
           const blob = await compressImage(file);
           return new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
         }),
@@ -47,7 +46,7 @@ export default function ImageUploader({ propertyId, existingImages, onUploaded }
       const formData = new FormData();
       compressed.forEach((f) => formData.append('images', f));
 
-      await api.post(`/properties/${propertyId}/images`, formData, {
+      await api.post(`/properties/${pid}/images`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success('Images uploadées avec succès');
@@ -57,8 +56,24 @@ export default function ImageUploader({ propertyId, existingImages, onUploaded }
       toast.error("Erreur lors de l'upload");
     } finally {
       setUploading(false);
+      setCompressing(false);
     }
   };
+
+  const uploadAll = () => {
+    if (!propertyId) {
+      toast.error('Enregistrez d\'abord le bien');
+      return;
+    }
+    uploadFiles(queueRef.current, propertyId);
+  };
+
+  useEffect(() => {
+    if (prevPropertyId.current === null && propertyId && queueRef.current.length > 0) {
+      uploadFiles(queueRef.current, propertyId);
+    }
+    prevPropertyId.current = propertyId;
+  }, [propertyId]);
 
   return (
     <div className="space-y-4">

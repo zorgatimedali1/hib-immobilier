@@ -88,6 +88,11 @@ const translations: Record<string, { fr: string; ar: string }> = {
   'analytics.langDistribution': { fr: 'Répartition par langue', ar: 'التوزيع حسب اللغة' },
   'analytics.clicks': { fr: 'clic(s)', ar: 'نقرة (نقرات)' },
   'analytics.dailyClicks': { fr: 'Clics par jour', ar: 'النقرات حسب اليوم' },
+  'analytics.clicksByPeriod': { fr: 'Clics par période', ar: 'النقرات حسب الفترة' },
+  'analytics.period.day': { fr: 'Jour', ar: 'يوم' },
+  'analytics.period.week': { fr: 'Semaine', ar: 'أسبوع' },
+  'analytics.period.month': { fr: 'Mois', ar: 'شهر' },
+  'analytics.period.year': { fr: 'Année', ar: 'سنة' },
   'analytics.noData': { fr: 'Aucune donnée', ar: 'لا توجد بيانات' },
 
   // DataTable

@@ -25,6 +25,7 @@ export default function Properties() {
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState('created_at');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [statusFilter, setStatusFilter] = useState<PropertyStatus | 'all'>('all');
   const [deleteTarget, setDeleteTarget] = useState<PropertyRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -50,8 +51,13 @@ export default function Properties() {
     }
   };
 
+  const filtered = useMemo(() => {
+    if (statusFilter === 'all') return properties;
+    return properties.filter((p) => p.status === statusFilter);
+  }, [properties, statusFilter]);
+
   const sorted = useMemo(() => {
-    const arr = [...properties];
+    const arr = [...filtered];
     arr.sort((a, b) => {
       const aVal = (a as any)[sortKey] ?? '';
       const bVal = (b as any)[sortKey] ?? '';
@@ -59,7 +65,7 @@ export default function Properties() {
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return arr;
-  }, [properties, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -75,6 +81,14 @@ export default function Properties() {
       setDeleting(false);
     }
   };
+
+  const statusFilters: { key: PropertyStatus | 'all'; label: string; count: number }[] = [
+    { key: 'all', label: 'Tous', count: properties.length },
+    { key: 'a_vendre', label: STATUS_LABELS.a_vendre, count: properties.filter((p) => p.status === 'a_vendre').length },
+    { key: 'a_louer', label: STATUS_LABELS.a_louer, count: properties.filter((p) => p.status === 'a_louer').length },
+    { key: 'vendu', label: STATUS_LABELS.vendu, count: properties.filter((p) => p.status === 'vendu').length },
+    { key: 'loue', label: STATUS_LABELS.loue, count: properties.filter((p) => p.status === 'loue').length },
+  ];
 
   const columns = [
     {
@@ -152,7 +166,7 @@ export default function Properties() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[#0F172A]">{t('properties.title', lang)}</h1>
-          <p className="text-sm text-[#64748B] mt-1">{properties.length} {t('properties.count', lang)}</p>
+          <p className="text-sm text-[#64748B] mt-1">{sorted.length} {t('properties.count', lang)}</p>
         </div>
         <Link to="/dashboard/properties/new">
           <Button>
@@ -160,6 +174,28 @@ export default function Properties() {
             {t('properties.add', lang)}
           </Button>
         </Link>
+      </div>
+
+      <div className="bg-white rounded-xl border border-[#E2E8F0] p-1.5">
+        <div className="flex gap-1">
+          {statusFilters.map((sf) => (
+            <button
+              key={sf.key}
+              type="button"
+              onClick={() => setStatusFilter(sf.key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === sf.key
+                  ? 'bg-magenta text-white'
+                  : 'text-[#64748B] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
+              }`}
+            >
+              {sf.label}
+              <span className={`ml-1.5 text-xs ${statusFilter === sf.key ? 'text-white/70' : 'text-[#94A3B8]'}`}>
+                {sf.count}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <DataTable

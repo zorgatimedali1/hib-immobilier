@@ -126,7 +126,7 @@ export default function PropertyForm() {
       if (isEdit) {
         await api.put(`/properties/${id}`, payload);
         toast.success(t('form.updated', lang));
-        navigate('/dashboard/properties');
+        navigate('/dashboard');
       } else {
         const { data } = await api.post('/properties', payload);
         const newId = data.data?.id ?? data.id;
@@ -293,11 +293,11 @@ export default function PropertyForm() {
             existingImages={isEdit ? existingImages : undefined}
             onUploaded={() => window.location.reload()}
           />
-          <p className="text-xs text-[#94A3B8]">
-            {!isEdit && !createdId
-              ? 'Ajoutez vos images maintenant, elles seront uploadées après l\'enregistrement du bien.'
-              : 'Compression automatique en 1920×1080 (format JPEG, ~80% qualité)'}
-          </p>
+          {!isEdit && !createdId && (
+            <p className="text-xs text-[#94A3B8]">
+              Ajoutez vos images maintenant, elles seront uploadées après l'enregistrement du bien.
+            </p>
+          )}
         </div>
 
         {/* Actions */}
