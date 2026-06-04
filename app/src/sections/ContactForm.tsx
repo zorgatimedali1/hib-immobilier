@@ -59,10 +59,11 @@ export default function ContactForm() {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-[#0F172A] mb-1.5">
+                    <label htmlFor="name" className="block text-sm font-medium text-[#0F172A] mb-1.5">
                       {t('contact.form.name')} *
                     </label>
                     <input
+                      id="name"
                       type="text"
                       name="name"
                       value={form.name}
@@ -73,10 +74,11 @@ export default function ContactForm() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#0F172A] mb-1.5">
+                    <label htmlFor="email" className="block text-sm font-medium text-[#0F172A] mb-1.5">
                       {t('contact.form.email')} *
                     </label>
                     <input
+                      id="email"
                       type="email"
                       name="email"
                       value={form.email}
@@ -90,10 +92,11 @@ export default function ContactForm() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-medium text-[#0F172A] mb-1.5">
+                    <label htmlFor="phone" className="block text-sm font-medium text-[#0F172A] mb-1.5">
                       {t('contact.form.phone')}
                     </label>
                     <input
+                      id="phone"
                       type="tel"
                       name="phone"
                       value={form.phone}
@@ -103,10 +106,11 @@ export default function ContactForm() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#0F172A] mb-1.5">
+                    <label htmlFor="subject" className="block text-sm font-medium text-[#0F172A] mb-1.5">
                       {t('contact.form.subject')} *
                     </label>
                     <input
+                      id="subject"
                       type="text"
                       name="subject"
                       value={form.subject}
@@ -119,10 +123,11 @@ export default function ContactForm() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-[#0F172A] mb-1.5">
+                  <label htmlFor="message" className="block text-sm font-medium text-[#0F172A] mb-1.5">
                     {t('contact.form.message')} *
                   </label>
                   <textarea
+                    id="message"
                     name="message"
                     value={form.message}
                     onChange={handleFormFieldChange}

@@ -1,4 +1,4 @@
-import { createContext, useState, useCallback, useEffect, use, type ReactNode } from 'react';
+import { createContext, useState, useCallback, useEffect, useMemo, use, type ReactNode } from 'react';
 import type { Language, Direction } from '@/types';
 import { translations } from '@/data/translations';
 import type { TranslationKey } from '@/data/translations';
@@ -39,8 +39,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [lang]
   );
 
+  const ctxValue = useMemo(() => ({ lang, dir, toggleLanguage, t }), [lang, dir, toggleLanguage, t]);
+
   return (
-    <I18nContext.Provider value={{ lang, dir, toggleLanguage, t }}>
+    <I18nContext.Provider value={ctxValue}>
       {children}
     </I18nContext.Provider>
   );

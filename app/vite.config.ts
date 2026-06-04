@@ -18,7 +18,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['swiper', 'gsap', 'lenis'],
+          ui: ['swiper', 'gsap'],
           utils: ['react-countup', 'sonner', 'react-icons', 'lucide-react'],
         },
       },

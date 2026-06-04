@@ -25,7 +25,7 @@ export default function PropertyForm() {
   const [form, setForm] = useState<PropertyFormData>({
     slug: '', status: 'a_vendre', type: 'appartement', price: '', total_area: '',
     typology: '', location_fr: '', location_ar: '', title_fr: '', title_ar: '',
-    description_fr: '', description_ar: '', virtual_tour_url: '', is_featured: false, amenities: [],
+    description_fr: '', description_ar: '', is_featured: false, amenities: [],
   });
   const [existingImages, setExistingImages] = useState<PropertyRecord['property_images']>();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -52,7 +52,6 @@ export default function PropertyForm() {
           title_ar: p.title_ar,
           description_fr: p.description_fr,
           description_ar: p.description_ar,
-          virtual_tour_url: p.virtual_tour_url ?? '',
           is_featured: p.is_featured,
           amenities: p.amenities,
         });
@@ -98,7 +97,6 @@ export default function PropertyForm() {
       price: parsed.data.price ? Number(parsed.data.price) : null,
       total_area: Number(parsed.data.total_area),
       price_per_meter: null,
-      virtual_tour_url: parsed.data.virtual_tour_url || null,
       typology: parsed.data.typology || null,
     };
 
@@ -174,7 +172,6 @@ export default function PropertyForm() {
             <Input id="typology" label={t('form.typology', lang)} value={form.typology} onChange={(e) => handleChange('typology', e.target.value)} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input id="virtual_tour_url" label={t('form.virtualTour', lang)} value={form.virtual_tour_url} onChange={(e) => handleChange('virtual_tour_url', e.target.value)} />
             <div className="flex items-center gap-2 pt-6">
               <input
                 type="checkbox"
@@ -269,13 +266,16 @@ export default function PropertyForm() {
         {/* Images */}
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 space-y-4">
           <h2 className="text-base font-semibold text-[#0F172A]">{t('form.images', lang)}</h2>
-          {isEdit ? (
-            <ImageUploader propertyId={id!} existingImages={existingImages} onUploaded={() => window.location.reload()} />
-          ) : createdId ? (
-            <ImageUploader propertyId={createdId} onUploaded={() => window.location.reload()} />
-          ) : (
-            <p className="text-sm text-[#64748B]">{t('form.imagesLater', lang)}</p>
-          )}
+          <ImageUploader
+            propertyId={isEdit ? id : createdId}
+            existingImages={isEdit ? existingImages : undefined}
+            onUploaded={() => window.location.reload()}
+          />
+          <p className="text-xs text-[#94A3B8]">
+            {!isEdit && !createdId
+              ? 'Ajoutez vos images maintenant, elles seront uploadées après l\'enregistrement du bien.'
+              : 'Compression automatique en 1920×1080 (format JPEG, ~80% qualité)'}
+          </p>
         </div>
 
         {/* Actions */}

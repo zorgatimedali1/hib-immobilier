@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useI18n } from '@/context/I18nContext';
@@ -22,10 +22,11 @@ export default function Navbar() {
   }, []);
 
   // Close mobile menu on route change
-  const pathname = location.pathname;
-  useEffect(() => {
+  const pathnameRef = useRef(location.pathname);
+  if (location.pathname !== pathnameRef.current) {
+    pathnameRef.current = location.pathname;
     setMobileOpen(false);
-  }, [pathname]);
+  }
 
   const isHome = location.pathname === '/';
   const isTransparent = isHome && !isScrolled;
@@ -135,12 +136,10 @@ export default function Navbar() {
         }`}
       >
         {/* Backdrop */}
-        <div
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer"
           onClick={() => setMobileOpen(false)}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setMobileOpen(false); }}
         />
         {/* Drawer */}
         <div

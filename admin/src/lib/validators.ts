@@ -18,7 +18,6 @@ export const propertySchema = z.object({
   title_ar: z.string().optional().default(''),
   description_fr: z.string().min(1, 'Requis'),
   description_ar: z.string().optional().default(''),
-  virtual_tour_url: z.string().optional(),
   is_featured: z.boolean(),
   amenities: z.array(z.string()),
 });

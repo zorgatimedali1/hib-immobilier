@@ -17,7 +17,6 @@ export interface PropertyRecord {
   title_ar: string;
   description_fr: string;
   description_ar: string;
-  virtual_tour_url: string | null;
   is_featured: boolean;
   amenities: string[];
   created_at: string;
@@ -53,7 +52,6 @@ export interface PropertyFormData {
   title_ar: string;
   description_fr: string;
   description_ar: string;
-  virtual_tour_url: string;
   is_featured: boolean;
   amenities: string[];
 }

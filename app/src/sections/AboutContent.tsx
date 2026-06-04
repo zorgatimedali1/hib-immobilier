@@ -2,17 +2,17 @@ import { useI18n } from '@/context/I18nContext';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import { Building2, Target, Handshake, Award } from 'lucide-react';
 
+const values = [
+  { icon: Target, key: 'about.value1' },
+  { icon: Handshake, key: 'about.value2' },
+  { icon: Award, key: 'about.value3' },
+  { icon: Building2, key: 'about.value4' },
+] as const;
+
 export default function AboutContent() {
   const { t } = useI18n();
   const ref1 = useScrollReveal<HTMLDivElement>({ y: 30, stagger: 0.1 });
   const ref2 = useScrollReveal<HTMLDivElement>({ y: 30, stagger: 0.15 });
-
-  const values = [
-    { icon: Target, key: 'about.value1' },
-    { icon: Handshake, key: 'about.value2' },
-    { icon: Award, key: 'about.value3' },
-    { icon: Building2, key: 'about.value4' },
-  ] as const;
 
   return (
     <>

@@ -17,6 +17,8 @@ export function useScrollReveal<T extends HTMLElement>(
   options: ScrollRevealOptions = {}
 ) {
   const ref = useRef<T>(null);
+  const optsRef = useRef(options);
+  optsRef.current = options;
 
   useEffect(() => {
     const el = ref.current;
@@ -29,7 +31,7 @@ export function useScrollReveal<T extends HTMLElement>(
       ease = 'power2.out',
       threshold = 0.15,
       delay = 0,
-    } = options;
+    } = optsRef.current;
 
     const targets = stagger > 0 ? el.children : el;
 

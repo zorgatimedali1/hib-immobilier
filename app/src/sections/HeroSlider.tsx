@@ -124,10 +124,10 @@ export default function HeroSlider() {
 
       {/* Slide Indicators */}
       <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3">
-        {slides.map((_, index) => (
+        {slides.map((slide, index) => (
           <button
             type="button"
-            key={`dot-${index}`}
+            key={slide.image}
             onClick={() => swiperRef.current?.slideToLoop(index)}
             className={`transition-all duration-300 rounded-full ${
               index === activeIndex

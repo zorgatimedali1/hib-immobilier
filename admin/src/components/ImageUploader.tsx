@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, Save } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { compressImage } from '@/lib/compressImage';
 
 interface ImageUploaderProps {
-  propertyId: string;
+  propertyId?: string | null;
   existingImages?: { id: string; image_url: string; display_order: number; is_cover: boolean }[];
   onUploaded?: () => void;
 }
@@ -28,6 +28,10 @@ export default function ImageUploader({ propertyId, existingImages, onUploaded }
 
   const uploadAll = async () => {
     if (!queue.length) return;
+    if (!propertyId) {
+      toast.error('Enregistrez d\'abord le bien');
+      return;
+    }
     setCompressing(true);
 
     try {
@@ -111,10 +115,12 @@ export default function ImageUploader({ propertyId, existingImages, onUploaded }
           <button
             type="button"
             onClick={uploadAll}
-            disabled={uploading || compressing}
+            disabled={uploading || compressing || !propertyId}
             className="bg-magenta text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-magenta-700 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
           >
-            {compressing ? (
+            {!propertyId ? (
+              <><Save size={14} /> Enregistrez le bien d'abord</>
+            ) : compressing ? (
               <><Loader2 size={14} className="animate-spin" /> Compression en cours...</>
             ) : uploading ? (
               <><Loader2 size={14} className="animate-spin" /> Upload en cours...</>
