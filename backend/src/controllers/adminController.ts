@@ -8,6 +8,7 @@ import {
   updateProperty as updatePropertyService,
 } from '../services/propertyService';
 import { getWhatsappLeads } from '../services/leadService';
+import { translateToArabic } from '../services/translationService';
 import { UploadedFile } from '../types';
 
 export const listProperties = async (_req: Request, res: Response) => {
@@ -56,6 +57,12 @@ export const deleteProperty = async (req: Request, res: Response) => {
   }
 
   return res.status(200).json({ data: { id } });
+};
+
+export const translateFields = async (req: Request, res: Response) => {
+  const { title_fr, description_fr, location_fr } = req.body;
+  const result = await translateToArabic({ title_fr, description_fr, location_fr });
+  return res.status(200).json({ data: result });
 };
 
 export const uploadPropertyImages = async (req: Request, res: Response) => {

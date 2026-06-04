@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Save, ArrowLeft, Languages } from 'lucide-react';
+import { Save, ArrowLeft, Sparkles } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { t } from '@/lib/i18n';
 import api from '@/lib/api';
@@ -31,7 +31,7 @@ export default function PropertyForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEdit);
-  const [translatedAr, setTranslatedAr] = useState(false);
+  const [translating, setTranslating] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,7 +55,6 @@ export default function PropertyForm() {
           is_featured: p.is_featured,
           amenities: p.amenities,
         });
-        if (p.title_ar) setTranslatedAr(true);
         setExistingImages(p.property_images);
       })
       .catch(() => toast.error(t('form.loadError', lang)))
@@ -74,6 +73,29 @@ export default function PropertyForm() {
         ? prev.amenities.filter((a) => a !== amenity)
         : [...prev.amenities, amenity],
     }));
+  };
+
+  const handleTranslate = async () => {
+    setTranslating(true);
+    try {
+      const { data } = await api.post('/translate', {
+        title_fr: form.title_fr,
+        description_fr: form.description_fr,
+        location_fr: form.location_fr,
+      });
+      const t = data.data ?? data;
+      setForm((prev) => ({
+        ...prev,
+        title_ar: t.title_ar || prev.title_ar,
+        description_ar: t.description_ar || prev.description_ar,
+        location_ar: t.location_ar || prev.location_ar,
+      }));
+      toast.success('Traduction effectuée');
+    } catch {
+      toast.error('Erreur de traduction');
+    } finally {
+      setTranslating(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,7 +135,6 @@ export default function PropertyForm() {
         setExistingImages([]);
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
       }
-      setTranslatedAr(true);
     } catch {
       toast.error(t('form.saveError', lang));
     } finally {
@@ -185,14 +206,19 @@ export default function PropertyForm() {
           </div>
         </div>
 
-        {/* Localized Titles & Locations - FR only + auto AR preview */}
+        {/* Localized Titles & Locations */}
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-[#0F172A]">{t('form.localization', lang)}</h2>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-leaf/10 text-leaf text-xs font-medium">
-              <Languages size={14} />
-              Traduction AR automatique
-            </div>
+            <button
+              type="button"
+              onClick={handleTranslate}
+              disabled={translating}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-leaf/10 text-leaf text-xs font-medium hover:bg-leaf/20 transition-colors disabled:opacity-50"
+            >
+              <Sparkles size={14} />
+              {translating ? 'Traduction...' : 'Traduire automatiquement'}
+            </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-3">
@@ -202,12 +228,8 @@ export default function PropertyForm() {
             </div>
             <div className="space-y-3">
               <p className="text-xs font-semibold text-leaf uppercase tracking-wide" dir="rtl">{t('form.arabic', lang)}</p>
-              <p className="text-sm text-[#94A3B8] border border-dashed border-[#E2E8F0] rounded-lg px-3 py-2.5 min-h-[2.5rem]" dir="rtl">
-                {translatedAr ? form.title_ar || '—' : 'Traduit automatiquement après l\'enregistrement'}
-              </p>
-              <p className="text-sm text-[#94A3B8] border border-dashed border-[#E2E8F0] rounded-lg px-3 py-2.5 min-h-[2.5rem]" dir="rtl">
-                {translatedAr ? form.location_ar || '—' : 'Traduit automatiquement après l\'enregistrement'}
-              </p>
+              <Input id="title_ar" label="العنوان" value={form.title_ar} onChange={(e) => handleChange('title_ar', e.target.value)} dir="rtl" />
+              <Input id="location_ar" label="الموقع" value={form.location_ar} onChange={(e) => handleChange('location_ar', e.target.value)} dir="rtl" />
             </div>
           </div>
         </div>
@@ -232,11 +254,11 @@ export default function PropertyForm() {
               <label className="text-xs font-semibold text-[#475569] uppercase tracking-wide mb-1.5 block" dir="rtl">{t('form.descAr', lang)}</label>
               <textarea
                 value={form.description_ar}
-                readOnly
+                onChange={(e) => handleChange('description_ar', e.target.value)}
                 rows={5}
                 dir="rtl"
-                placeholder="Traduit automatiquement après l'enregistrement"
-                className="w-full px-3 py-2 rounded-lg border border-dashed border-[#E2E8F0] bg-[#FAFAFA] text-sm text-[#94A3B8] resize-none cursor-default"
+                placeholder="Écrivez en arabe ou utilisez 'Traduire automatiquement'"
+                className="w-full px-3 py-2 rounded-lg border bg-white text-sm text-[#0F172A] resize-none focus:outline-none focus:ring-2 focus:ring-magenta border-[#E2E8F0]"
               />
             </div>
           </div>
