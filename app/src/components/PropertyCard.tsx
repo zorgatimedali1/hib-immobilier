@@ -100,7 +100,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
         {/* CTA */}
         <Link
-          to={`/biens/${property.id}`}
+          to={`/biens/${property.slug}`}
           className="inline-flex items-center gap-1 text-magenta text-sm font-medium hover:underline group/link"
         >
           {t('featured.details')}

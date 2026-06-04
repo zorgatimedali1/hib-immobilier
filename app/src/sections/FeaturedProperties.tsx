@@ -1,16 +1,23 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useI18n } from '@/context/I18nContext';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import SectionHeader from '@/components/SectionHeader';
 import PropertyCard from '@/components/PropertyCard';
-import { properties } from '@/data/properties';
+import { fetchProperties } from '@/lib/api';
+import type { Property } from '@/types';
 
 export default function FeaturedProperties() {
   const { t, lang } = useI18n();
   const ref = useScrollReveal<HTMLDivElement>({ y: 50, stagger: 0.15 });
+  const [properties, setProperties] = useState<Property[]>([]);
 
-  const featuredProperties = properties.filter((p) => p.featured);
+  useEffect(() => {
+    fetchProperties({ featured: true })
+      .then(setProperties)
+      .catch(() => {});
+  }, []);
 
   return (
     <section className="py-20 md:py-28 bg-lightalt">
@@ -21,7 +28,7 @@ export default function FeaturedProperties() {
           subtitle="featured.subtitle"
         />
         <div ref={ref} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {featuredProperties.map((property) => (
+          {properties.map((property) => (
             <PropertyCard key={property.id} property={property} />
           ))}
         </div>

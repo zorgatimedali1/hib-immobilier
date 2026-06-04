@@ -6,6 +6,7 @@ export type PropertyType = 'apartment' | 'villa' | 'commercial' | 'land' | 'pent
 
 export interface Property {
   id: string;
+  slug: string;
   title: { fr: string; ar: string };
   location: { fr: string; ar: string };
   type: PropertyType;

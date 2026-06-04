@@ -3,10 +3,13 @@ import { useI18n } from '@/context/I18nContext';
 import ListingsHero from '@/sections/ListingsHero';
 import FilterBar, { type Filters } from '@/sections/FilterBar';
 import PropertyGrid from '@/sections/PropertyGrid';
-import { properties } from '@/data/properties';
+import { fetchProperties } from '@/lib/api';
+import type { Property } from '@/types';
 
 export default function Listings() {
   const { lang } = useI18n();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({
     type: '',
     status: '',
@@ -19,6 +22,13 @@ export default function Listings() {
       ? 'Hibiscus Immobiliere | Biens immobiliers'
       : 'هيبيسكوس العقارية | العقارات';
   }, [lang]);
+
+  useEffect(() => {
+    fetchProperties()
+      .then(setProperties)
+      .catch(() => setProperties([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {
@@ -35,7 +45,7 @@ export default function Listings() {
       }
       return true;
     });
-  }, [filters]);
+  }, [filters, properties]);
 
   return (
     <main>
@@ -47,7 +57,11 @@ export default function Listings() {
             onFilterChange={setFilters}
             resultCount={filteredProperties.length}
           />
-          <PropertyGrid properties={filteredProperties} />
+          {loading ? (
+            <div className="text-center py-12 text-[#94A3B8]">{lang === 'fr' ? 'Chargement...' : 'جاري التحميل...'}</div>
+          ) : (
+            <PropertyGrid properties={filteredProperties} />
+          )}
         </div>
       </section>
     </main>

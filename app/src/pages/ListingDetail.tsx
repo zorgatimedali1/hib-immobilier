@@ -1,29 +1,46 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useI18n } from '@/context/I18nContext';
-import { properties } from '@/data/properties';
+import { fetchPropertyBySlug } from '@/lib/api';
 import DetailHero from '@/sections/DetailHero';
 import PropertySpecs from '@/sections/PropertySpecs';
 import VirtualTour from '@/sections/VirtualTour';
 import SimilarProperties from '@/sections/SimilarProperties';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import type { Property } from '@/types';
 
 export default function ListingDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const { t, lang } = useI18n();
-
-  const property = properties.find((p) => p.id === id);
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [id]);
+    if (!slug) return;
+    setLoading(true);
+    fetchPropertyBySlug(slug)
+      .then(setProperty)
+      .catch(() => setProperty(null))
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   useEffect(() => {
     if (property) {
       document.title = `${property.title[lang]} | Hibiscus Immobiliere`;
     }
   }, [property, lang]);
+
+  if (loading) {
+    return (
+      <main>
+        <div className="container-main py-20 text-center text-[#94A3B8]">
+          {lang === 'fr' ? 'Chargement...' : 'جاري التحميل...'}
+        </div>
+      </main>
+    );
+  }
 
   if (!property) {
     return <Navigate to="/biens" replace />;

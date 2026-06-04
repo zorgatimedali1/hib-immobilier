@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react';
 import { useI18n } from '@/context/I18nContext';
 import PropertyCard from '@/components/PropertyCard';
+import { fetchProperties } from '@/lib/api';
 import type { Property } from '@/types';
-import { properties } from '@/data/properties';
 
 interface SimilarPropertiesProps {
   currentProperty: Property;
@@ -9,14 +10,20 @@ interface SimilarPropertiesProps {
 
 export default function SimilarProperties({ currentProperty }: SimilarPropertiesProps) {
   const { t } = useI18n();
+  const [similar, setSimilar] = useState<Property[]>([]);
 
-  const similar = properties
-    .filter(
-      (p) =>
-        p.id !== currentProperty.id &&
-        (p.type === currentProperty.type || p.location.fr.includes(currentProperty.location.fr.split(',')[0]))
-    )
-    .slice(0, 3);
+  useEffect(() => {
+    fetchProperties()
+      .then((all) => {
+        const filtered = all.filter(
+          (p) =>
+            p.id !== currentProperty.id &&
+            (p.type === currentProperty.type || p.location.fr.includes(currentProperty.location.fr.split(',')[0]))
+        ).slice(0, 3);
+        setSimilar(filtered);
+      })
+      .catch(() => {});
+  }, [currentProperty]);
 
   if (similar.length === 0) return null;
 
