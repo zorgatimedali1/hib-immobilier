@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.DEV ? '/api/public' : '/api/public';
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/public`
+  : '/api/public';
 
 export function trackWhatsappClick(propertyId?: string | null) {
   const detected_lang = document.documentElement.lang || 'fr';
