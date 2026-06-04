@@ -65,7 +65,7 @@ export default function PropertySpecs({ property }: PropertySpecsProps) {
               </p>
               <button
                 type="button"
-                onClick={() => openWhatsapp(property.title[lang], property.slug)}
+                onClick={() => openWhatsapp(property.title[lang], property.id)}
                 className="block w-full text-center bg-whatsapp hover:bg-[#20BD5C] text-white font-semibold text-sm py-3.5 rounded-lg transition-colors duration-200 mb-4"
               >
                 WhatsApp
