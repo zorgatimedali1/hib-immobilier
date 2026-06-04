@@ -1,9 +1,13 @@
 import { mapApiProperty, mapApiProperties } from './mapper';
 import type { Property } from '@/types';
 
+const defaultApiBase = typeof window !== 'undefined'
+  ? `${window.location.origin}/api/public`
+  : '/api/public';
+
 const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api/public`
-  : '/api/public';
+  : defaultApiBase;
 
 export async function fetchProperties(filters?: { featured?: boolean; type?: string }): Promise<Property[]> {
   const params = new URLSearchParams();
