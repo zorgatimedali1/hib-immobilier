@@ -20,8 +20,8 @@ export function openWhatsapp(propertyName?: string, propertyId?: string | null) 
 
   const lang = document.documentElement.lang || 'fr';
   const messages: Record<string, string> = {
-    fr: "Bonjour Hibiscus Immobiliere, je suis interesse par l'annonce",
-    ar: 'مرحباً هيبيسكوس العقارية، أنا مهتم بالإعلان',
+    fr: "Bonjour, je viens du site web Hibiscus Immobiliere et je suis interesse par l'annonce",
+    ar: 'مرحباً، أتيت من موقع هيبيسكوس العقارية وأنا مهتم بالإعلان',
   };
   const baseMsg = messages[lang] || messages.fr;
   const text = propertyName ? `${baseMsg}: ${propertyName}` : baseMsg;
