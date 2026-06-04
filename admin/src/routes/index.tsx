@@ -23,7 +23,7 @@ export default function AppRouter() {
           }}
         />
         <Routes>
-          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/admin" element={<PublicRoute><Login /></PublicRoute>} />
           <Route
             path="/dashboard"
             element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}
