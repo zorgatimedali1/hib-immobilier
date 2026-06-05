@@ -1,29 +1,21 @@
+import { useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useI18n } from '@/context/I18nContext';
-import { fetchPropertyBySlug } from '@/lib/api';
+import { useProperty } from '@/lib/hooks';
 import DetailHero from '@/sections/DetailHero';
 import PropertySpecs from '@/sections/PropertySpecs';
 import VirtualTour from '@/sections/VirtualTour';
 import SimilarProperties from '@/sections/SimilarProperties';
 import WhatsAppButton from '@/components/WhatsAppButton';
-import type { Property } from '@/types';
 
 export default function ListingDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { t, lang } = useI18n();
-  const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: property, isLoading } = useProperty(slug);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (!slug) return;
-    setLoading(true);
-    fetchPropertyBySlug(slug)
-      .then(setProperty)
-      .catch(() => setProperty(null))
-      .finally(() => setLoading(false));
   }, [slug]);
 
   useEffect(() => {
@@ -32,7 +24,7 @@ export default function ListingDetail() {
     }
   }, [property, lang]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <main>
         <div className="container-main py-20 text-center text-[#94A3B8]">
@@ -48,7 +40,6 @@ export default function ListingDetail() {
 
   return (
     <main>
-      {/* Back Link */}
       <div className="bg-white border-b border-[#E2E8F0]">
         <div className="container-main py-3">
           <Link

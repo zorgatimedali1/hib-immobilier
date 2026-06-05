@@ -291,7 +291,7 @@ export default function PropertyForm() {
           <ImageUploader
             propertyId={isEdit ? id : createdId}
             existingImages={isEdit ? existingImages : undefined}
-            onUploaded={() => window.location.reload()}
+            onUploaded={() => {}}
           />
           {!isEdit && !createdId && (
             <p className="text-xs text-[#94A3B8]">

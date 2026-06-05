@@ -1,23 +1,15 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useI18n } from '@/context/I18nContext';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import SectionHeader from '@/components/SectionHeader';
 import PropertyCard from '@/components/PropertyCard';
-import { fetchProperties } from '@/lib/api';
-import type { Property } from '@/types';
+import { useProperties } from '@/lib/hooks';
 
 export default function FeaturedProperties() {
   const { t, lang } = useI18n();
   const ref = useScrollReveal<HTMLDivElement>({ y: 50, stagger: 0.15 });
-  const [properties, setProperties] = useState<Property[]>([]);
-
-  useEffect(() => {
-    fetchProperties({ featured: true })
-      .then(setProperties)
-      .catch(() => {});
-  }, []);
+  const { data: properties = [] } = useProperties({ featured: true });
 
   return (
     <section className="py-20 md:py-28 bg-lightalt">

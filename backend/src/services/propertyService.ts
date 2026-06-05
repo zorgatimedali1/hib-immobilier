@@ -5,9 +5,11 @@ import * as imageService from './imageService';
 interface PropertyFilters {
   featured?: boolean;
   type?: string;
+  page?: number;
+  limit?: number;
 }
 
-export const getProperties = async (filters: PropertyFilters): Promise<PropertyRecord[]> => {
+export const getProperties = async (filters: PropertyFilters) => {
   return propertyRepository.fetchProperties(filters);
 };
 
@@ -17,6 +19,10 @@ export const getPropertyBySlug = async (slug: string): Promise<PropertyRecord | 
 
 export const getPropertyById = async (id: string): Promise<PropertyRecord | null> => {
   return propertyRepository.fetchPropertyById(id);
+};
+
+export const getSimilarProperties = async (propertyId: string, type: string, location: string): Promise<PropertyRecord[]> => {
+  return propertyRepository.fetchSimilarProperties(propertyId, type, location);
 };
 
 export const createProperty = async (payload: Partial<PropertyRecord>): Promise<PropertyRecord> => {

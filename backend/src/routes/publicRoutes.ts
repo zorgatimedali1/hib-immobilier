@@ -6,6 +6,7 @@ const router = Router();
 
 router.get('/properties', publicController.getProperties);
 router.get('/properties/:slug', publicController.getPropertyBySlug);
+router.get('/properties/:id/similar', publicController.getSimilarProperties);
 router.post('/leads/whatsapp', leadController.createWhatsappLead);
 
 export default router;

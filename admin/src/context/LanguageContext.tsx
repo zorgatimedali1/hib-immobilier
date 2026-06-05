@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Lang } from '@/lib/i18n';
+
+const STORAGE_KEY = 'hibiscus-admin-lang';
 
 interface LanguageState {
   lang: Lang;
@@ -10,7 +12,18 @@ interface LanguageState {
 const LanguageContext = createContext<LanguageState | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>('fr');
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === 'fr' || stored === 'ar') return stored;
+    }
+    return 'fr';
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, lang);
+  }, [lang]);
+
   const toggleLang = () => setLang((prev) => (prev === 'fr' ? 'ar' : 'fr'));
 
   return (

@@ -1,78 +1,122 @@
 import { Request, Response } from 'express';
-import {
-  getProperties as getPropertiesService,
-  getPropertyById as getPropertyByIdService,
-  uploadPropertyImagesForProperty,
-  createProperty as createPropertyService,
-  deleteProperty as deletePropertyService,
-  updateProperty as updatePropertyService,
-} from '../services/propertyService';
+import * as propertyService from '../services/propertyService';
 import { getWhatsappLeads } from '../services/leadService';
 import { translateToArabic } from '../services/translationService';
+import { invalidateCache } from '../middleware/cache';
 import { UploadedFile } from '../types';
 
 export const listProperties = async (_req: Request, res: Response) => {
-  const properties = await getPropertiesService({});
-  return res.status(200).json({ data: properties });
+  try {
+    const result = await propertyService.getProperties({});
+    return res.status(200).json({ data: result.data });
+  } catch (error) {
+    console.error('Error listing properties:', error);
+    return res.status(500).json({ error: 'Failed to list properties' });
+  }
 };
 
 export const getPropertyById = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const property = await getPropertyByIdService(id);
-  if (!property) {
-    return res.status(404).json({ error: 'Property not found' });
+  try {
+    const { id } = req.params;
+    const property = await propertyService.getPropertyById(id);
+    if (!property) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+    return res.status(200).json({ data: property });
+  } catch (error) {
+    console.error('Error getting property by id:', error);
+    return res.status(500).json({ error: 'Failed to get property' });
   }
-  return res.status(200).json({ data: property });
 };
 
 export const listLeads = async (_req: Request, res: Response) => {
-  const leads = await getWhatsappLeads();
-  return res.status(200).json({ data: leads });
+  try {
+    const leads = await getWhatsappLeads();
+    return res.status(200).json({ data: leads });
+  } catch (error) {
+    console.error('Error listing leads:', error);
+    return res.status(500).json({ error: 'Failed to list leads' });
+  }
 };
 
 export const createProperty = async (req: Request, res: Response) => {
-  const payload = req.body;
-  const property = await createPropertyService(payload);
-  return res.status(201).json({ data: property });
+  try {
+    const payload = req.body;
+    const property = await propertyService.createProperty(payload);
+    // Invalidate all property-related caches
+    invalidateCache('/api/public/properties');
+    invalidateCache('/api/public'); // Also clear the root cache
+    return res.status(201).json({ data: property });
+  } catch (error) {
+    console.error('Error creating property:', error);
+    return res.status(500).json({ error: 'Failed to create property' });
+  }
 };
 
 export const updateProperty = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const payload = req.body;
-  const updated = await updatePropertyService(id, payload);
+  try {
+    const { id } = req.params;
+    const payload = req.body;
+    const updated = await propertyService.updateProperty(id, payload);
 
-  if (!updated) {
-    return res.status(404).json({ error: 'Property not found' });
+    if (!updated) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+
+    // Invalidate all property-related caches
+    invalidateCache('/api/public/properties');
+    invalidateCache('/api/public'); // Also clear the root cache
+    return res.status(200).json({ data: updated });
+  } catch (error) {
+    console.error('Error updating property:', error);
+    return res.status(500).json({ error: 'Failed to update property' });
   }
-
-  return res.status(200).json({ data: updated });
 };
 
 export const deleteProperty = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const deleted = await deletePropertyService(id);
+  try {
+    const { id } = req.params;
+    const deleted = await propertyService.deleteProperty(id);
 
-  if (!deleted) {
-    return res.status(404).json({ error: 'Property not found' });
+    if (!deleted) {
+      return res.status(404).json({ error: 'Property not found' });
+    }
+
+    // Invalidate all property-related caches
+    invalidateCache('/api/public/properties');
+    invalidateCache('/api/public'); // Also clear the root cache
+    return res.status(200).json({ data: { id } });
+  } catch (error) {
+    console.error('Error deleting property:', error);
+    return res.status(500).json({ error: 'Failed to delete property' });
   }
-
-  return res.status(200).json({ data: { id } });
 };
 
 export const translateFields = async (req: Request, res: Response) => {
-  const { title_fr, description_fr, location_fr } = req.body;
-  const result = await translateToArabic({ title_fr, description_fr, location_fr });
-  return res.status(200).json({ data: result });
+  try {
+    const { title_fr, description_fr, location_fr } = req.body;
+    const result = await translateToArabic({ title_fr, description_fr, location_fr });
+    return res.status(200).json({ data: result });
+  } catch (error) {
+    console.error('Error translating fields:', error);
+    return res.status(500).json({ error: 'Failed to translate fields' });
+  }
 };
 
 export const uploadPropertyImages = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const files = Array.isArray(req.files) ? req.files as UploadedFile[] : [];
+  try {
+    const { id } = req.params;
+    const files = Array.isArray(req.files) ? req.files as UploadedFile[] : [];
 
-  if (!files.length) {
-    return res.status(400).json({ error: 'No images were uploaded' });
+    if (!files.length) {
+      return res.status(400).json({ error: 'No images were uploaded' });
+    }
+
+    const images = await propertyService.uploadPropertyImagesForProperty(id, files);
+    invalidateCache('/api/public/properties');
+    return res.status(201).json({ data: images });
+  } catch (error) {
+    console.error('Error uploading property images:', error);
+    return res.status(500).json({ error: 'Failed to upload images' });
   }
-
-  const images = await uploadPropertyImagesForProperty(id, files);
-  return res.status(201).json({ data: images });
 };

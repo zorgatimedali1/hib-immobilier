@@ -13,6 +13,7 @@ export async function fetchProperties(filters?: { featured?: boolean; type?: str
   const params = new URLSearchParams();
   if (filters?.featured) params.set('featured', 'true');
   if (filters?.type) params.set('type', filters.type);
+  params.set('limit', '50');
 
   const url = `${API_BASE}/properties${params.toString() ? `?${params}` : ''}`;
   const res = await fetch(url);
@@ -26,4 +27,11 @@ export async function fetchPropertyBySlug(slug: string): Promise<Property | null
   if (!res.ok) return null;
   const json = await res.json();
   return mapApiProperty(json.data);
+}
+
+export async function fetchSimilarProperties(id: string): Promise<Property[]> {
+  const res = await fetch(`${API_BASE}/properties/${id}/similar`);
+  if (!res.ok) return [];
+  const json = await res.json();
+  return mapApiProperties(json.data);
 }

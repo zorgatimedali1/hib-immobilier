@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
 import { useI18n } from '@/context/I18nContext';
 import PropertyCard from '@/components/PropertyCard';
-import { fetchProperties } from '@/lib/api';
+import { useSimilarProperties } from '@/lib/hooks';
 import type { Property } from '@/types';
 
 interface SimilarPropertiesProps {
@@ -10,22 +9,10 @@ interface SimilarPropertiesProps {
 
 export default function SimilarProperties({ currentProperty }: SimilarPropertiesProps) {
   const { t } = useI18n();
-  const [similar, setSimilar] = useState<Property[]>([]);
+  const { data: similar, isLoading } = useSimilarProperties(currentProperty.id);
 
-  useEffect(() => {
-    fetchProperties()
-      .then((all) => {
-        const filtered = all.filter(
-          (p) =>
-            p.id !== currentProperty.id &&
-            (p.type === currentProperty.type || p.location.fr.includes(currentProperty.location.fr.split(',')[0]))
-        ).slice(0, 3);
-        setSimilar(filtered);
-      })
-      .catch(() => {});
-  }, [currentProperty]);
-
-  if (similar.length === 0) return null;
+  if (isLoading) return null;
+  if (!similar || similar.length === 0) return null;
 
   return (
     <section className="py-12 md:py-16 bg-lightalt">

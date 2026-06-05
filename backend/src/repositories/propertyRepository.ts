@@ -4,13 +4,26 @@ import { PropertyRecord } from '../types';
 interface PropertyFilters {
   featured?: boolean;
   type?: string;
+  page?: number;
+  limit?: number;
 }
 
-export const fetchProperties = async (filters: PropertyFilters): Promise<PropertyRecord[]> => {
+interface PaginatedResult {
+  data: PropertyRecord[];
+  total: number;
+}
+
+export const fetchProperties = async (filters: PropertyFilters): Promise<PaginatedResult> => {
+  const page = filters.page || 1;
+  const limit = filters.limit || 50;
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
   let query = supabase
     .from('properties')
-    .select(`*, property_images(*)`)
-    .order('created_at', { ascending: false });
+    .select(`*, property_images(*)`, { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (filters.featured) {
     query = query.eq('is_featured', true);
@@ -20,13 +33,13 @@ export const fetchProperties = async (filters: PropertyFilters): Promise<Propert
     query = query.eq('type', filters.type);
   }
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
 
   if (error) {
     throw error;
   }
 
-  return data as PropertyRecord[];
+  return { data: data as PropertyRecord[], total: count ?? 0 };
 };
 
 export const fetchPropertyBySlug = async (slug: string): Promise<PropertyRecord | null> => {
@@ -63,6 +76,48 @@ export const fetchPropertyById = async (id: string): Promise<PropertyRecord | nu
   }
 
   return data as PropertyRecord;
+};
+
+export const fetchSimilarProperties = async (propertyId: string, type: string, location: string, limit: number = 3): Promise<PropertyRecord[]> => {
+  // First try to find properties with the same type
+  const { data: typeMatches, error: typeError } = await supabase
+    .from('properties')
+    .select(`*, property_images(*)`)
+    .eq('type', type)
+    .neq('id', propertyId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (typeError) {
+    throw typeError;
+  }
+
+  // If we have enough results, return them
+  if (typeMatches && typeMatches.length >= limit) {
+    return typeMatches as PropertyRecord[];
+  }
+
+  // Otherwise, also get properties with similar location
+  const remaining = limit - (typeMatches?.length || 0);
+  const { data: locationMatches, error: locationError } = await supabase
+    .from('properties')
+    .select(`*, property_images(*)`)
+    .neq('id', propertyId)
+    .ilike('location_fr', `%${location}%`)
+    .order('created_at', { ascending: false })
+    .limit(remaining);
+
+  if (locationError) {
+    throw locationError;
+  }
+
+  // Combine and deduplicate results
+  const allResults = [...(typeMatches || []), ...(locationMatches || [])];
+  const uniqueResults = Array.from(
+    new Map(allResults.map(p => [p.id, p])).values()
+  ).slice(0, limit);
+
+  return uniqueResults as PropertyRecord[];
 };
 
 export const insertProperty = async (payload: Partial<PropertyRecord>): Promise<PropertyRecord> => {

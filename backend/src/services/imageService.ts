@@ -13,38 +13,38 @@ export const uploadImages = async (
   files: { buffer: Buffer; originalname: string; mimetype: string }[]
 ): Promise<PropertyImageRecord[]> => {
   const nextOrder = await getMaxDisplayOrder(propertyId);
-  const uploads: Partial<PropertyImageRecord>[] = [];
 
-  for (let index = 0; index < files.length; index += 1) {
-    const file = files[index];
-    const filename = `${Date.now()}-${normalizeFileName(file.originalname)}`;
-    const path = `properties/${propertyId}/${filename}`;
+  const results = await Promise.all(
+    files.map(async (file, index) => {
+      const filename = `${Date.now()}-${normalizeFileName(file.originalname)}`;
+      const path = `properties/${propertyId}/${filename}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from(MEDIA_BUCKET)
-      .upload(path, file.buffer, {
-        cacheControl: '3600',
-        contentType: file.mimetype,
-        upsert: false
-      });
+      const { error: uploadError } = await supabase.storage
+        .from(MEDIA_BUCKET)
+        .upload(path, file.buffer, {
+          cacheControl: '3600',
+          contentType: file.mimetype,
+          upsert: false,
+        });
 
-    if (uploadError) {
-      throw uploadError;
-    }
+      if (uploadError) {
+        throw uploadError;
+      }
 
-    const publicUrlResponse = supabase.storage
-      .from(MEDIA_BUCKET)
-      .getPublicUrl(path);
+      const publicUrlResponse = supabase.storage
+        .from(MEDIA_BUCKET)
+        .getPublicUrl(path);
 
-    uploads.push({
-      property_id: propertyId,
-      image_url: publicUrlResponse.data.publicUrl,
-      display_order: nextOrder + index + 1,
-      is_cover: false
-    });
-  }
+      return {
+        property_id: propertyId,
+        image_url: publicUrlResponse.data.publicUrl,
+        display_order: nextOrder + index + 1,
+        is_cover: false,
+      } as Partial<PropertyImageRecord>;
+    })
+  );
 
-  const inserted = await insertPropertyImages(uploads);
+  const inserted = await insertPropertyImages(results);
   return inserted;
 };
 
